@@ -1,0 +1,26 @@
+version: 2
+
+sources:
+  - name: raw
+    database: warehouse_db
+    schema: raw
+    description: "Raw tables loaded by the dlt pipeline from the ERP API"
+    tables:
+      - name: customers
+        description: "Raw customer records from ERP"
+      - name: products
+        description: "Raw product records from ERP"
+      - name: stores
+        description: "Raw store records from ERP"
+      - name: employees
+        description: "Raw employee records from ERP"
+      - name: payment_methods
+        description: "Raw payment method records from ERP"
+      - name: orders
+        description: "Raw order headers from ERP"
+      - name: order_items
+        description: "Raw order line items from ERP"
+      - name: payments
+        description: "Raw payment events from ERP"
+      - name: inventory_movements
+        description: "Raw inventory movement events from ERP"

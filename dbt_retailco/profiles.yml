@@ -1,0 +1,12 @@
+dbt_retailco:
+  target: dev
+  outputs:
+    dev:
+      type: postgres
+      host: warehouse_db
+      port: 5432
+      user: warehouse_user
+      password: warehouse_pass_2024
+      dbname: warehouse_db
+      schema: staging
+      threads: 4
