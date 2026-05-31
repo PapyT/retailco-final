@@ -42,8 +42,7 @@ final as (
                                                 as sales_key,
 
         -- dimension foreign keys (surrogate)
-        to_char(o.ordered_at, 'YYYYMMDD')::integer
-                                                as date_key,
+        to_char(coalesce(p.updated_at, p.extracted_at)::timestamp::date, 'YYYYMMDD')::integer as date_key,
         coalesce(dc.customer_key, 'unknown')    as customer_key,
         coalesce(dp.product_key, 'unknown')     as product_key,
         coalesce(ds.store_key,   'unknown')     as store_key,

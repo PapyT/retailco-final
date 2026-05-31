@@ -32,7 +32,7 @@ final as (
                                                     as payment_key,
 
         -- dimension foreign keys
-        to_char(p.updated_at, 'YYYYMMDD')::integer  as date_key,
+        to_char(coalesce(p.updated_at, p.extracted_at)::timestamp::date, 'YYYYMMDD')::integer as date_key,
         coalesce(dc.customer_key, 'unknown')         as customer_key,
         coalesce(ds.store_key,    'unknown')         as store_key,
         coalesce(pm.payment_method_key, 'unknown')   as payment_method_key,
