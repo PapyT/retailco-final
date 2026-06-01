@@ -47,8 +47,8 @@ Python Extractor  ──►  Lake PostgreSQL (raw schema)
 
 **1. Clone the repository**
 ```bash
-git clone https://github.com/PapyT/retailco-pipeline.git
-cd retailco-pipeline
+git clone https://github.com/PapyT/retailco-final.git
+cd retailco-final
 ```
 
 **2. Create your `.env` file**
