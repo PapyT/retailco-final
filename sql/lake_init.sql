@@ -1,3 +1,4 @@
+-- mode
 -- Runs automatically when the lake_db container starts for the first time
 -- Creates the raw schema where the Python extractor will write data
 
