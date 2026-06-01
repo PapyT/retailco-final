@@ -1,0 +1,7 @@
+FROM ghcr.io/dbt-labs/dbt-postgres:1.7.17
+
+WORKDIR /dbt
+
+COPY dbt_retailco/ /dbt/
+
+ENTRYPOINT ["dbt"]
