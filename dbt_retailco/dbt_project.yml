@@ -1,0 +1,23 @@
+name: dbt_retailco
+version: '1.0.0'
+config-version: 2
+
+profile: dbt_retailco
+
+model-paths: ["models"]
+snapshot-paths: ["snapshots"]
+test-paths: ["tests"]
+seed-paths: ["seeds"]
+
+target-path: "target"
+clean-targets: ["target", "dbt_packages"]
+
+models:
+  dbt_retailco:
+    staging:
+      +schema: staging
+      +materialized: view
+    marts:
+      +schema: marts
+      +materialized: table
+      
