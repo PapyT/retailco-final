@@ -231,7 +231,7 @@ Connect to the warehouse database:
 
 **Windows / Mac / Linux:**
 ```bash
-docker exec retailco_warehouse_db psql -U warehouse_user -d warehouse_db
+docker exec -it retailco_warehouse_db psql -U warehouse_user -d warehouse_db
 ```
 
 **Revenue by store:**

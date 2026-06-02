@@ -1,178 +1,110 @@
-# RetailCo Business Insights
-## Data Pipeline Analytics Write-Up
+# RetailCo Business Insights Report
+## Analysis of Revenue, Customers, Products, Payments, and Data Quality
+
+---
+
+# RetailCo Business Insights Report
+
+## Executive Summary
+
+This report presents key business insights generated from RetailCo's modernised analytics platform. By integrating ERP data into a dimensional warehouse, management can now analyse sales performance, customer behaviour, product profitability, payment trends, and operational data quality across all four RetailCo locations: Lagos, Abuja, Port Harcourt, and Kano.
+
+The analysis reveals strong sales concentration in Lagos and Abuja, growing value from premium customer segments, opportunities to optimise discount strategies, increasing adoption of digital payment channels, and a small but important volume of anomalous transactions requiring investigation.
 
 ---
 
 ## 1. Revenue Performance
 
-**Which stores, products, and categories are driving sales, and how does it trend over time?**
+### Which stores, products, and categories are driving sales, and how does revenue trend over time?
 
-RetailCo operates four stores across Nigeria. Based on the data extracted from the ERP system, 
-all four locations — Lagos, Abuja, Port Harcourt, and Kano — contribute to a combined order 
-base of **80,000 orders** generating **360,463 line items**. 
+RetailCo processed approximately 80,000 orders comprising more than 360,000 individual order lines across its four stores.
 
-Revenue concentration analysis from `fct_sales` and `dim_store` reveals that the Lagos and 
-Abuja stores tend to lead in transaction volume, consistent with their status as Nigeria's 
-largest commercial centres and capital city respectively. However, Port Harcourt shows strong 
-average order values, reflecting the purchasing power of the oil-sector workforce in the region.
+Sales performance is concentrated in Lagos and Abuja, which generate the highest transaction volumes. This is consistent with their position as major commercial and population centres. While Port Harcourt processes fewer transactions, it demonstrates stronger average order values, suggesting greater spending per customer and stronger performance for premium products.
 
-At the product level, the top-performing categories drive the majority of net revenue. 
-The `dim_product` SCD2 dimension captures **2,000 products** across multiple categories. 
-Discount patterns (visible via `discount_pct` in `fct_sales`) show that heavy discounting 
-correlates with high unit volumes but compresses margins — meaning the highest-revenue products 
-are not always the most profitable.
+At the product level, a relatively small number of categories contribute a disproportionate share of overall revenue. Analysis indicates that high-volume products are not always the most profitable because aggressive discounting reduces realised revenue and margin.
 
-**Trend:** The date spine in `dim_date` covers 2023–2026 with Nigerian public holidays flagged. 
-Revenue shows strong seasonality around Democracy Day (June 12), Independence Day (October 1), 
-and the Christmas/Boxing Day period — all consistent with Nigerian retail behaviour.
+Seasonal patterns are clearly visible throughout the reporting period. Demand increases around key national holidays such as Democracy Day, Independence Day, Christmas, and Boxing Day. These periods consistently produce spikes in sales activity and should be considered during inventory planning and promotional campaigns.
 
-**Recommendation:** Invest in capacity at the Lagos flagship while using Port Harcourt's 
-high AOV as a benchmark for premium product placement across all stores.
+### Management Recommendation
+
+Expand inventory availability and operational capacity in Lagos and Abuja to support continued demand growth. Additionally, identify premium product categories that perform well in Port Harcourt and replicate those offerings across other locations where appropriate.
 
 ---
 
 ## 2. Customer Behaviour
 
-**How often do customers purchase, what is their average order value, and how do segments differ?**
+### How often do customers purchase, what is their average order value, and how do segments differ?
 
-The pipeline tracks **5,000 customers** with full SCD2 history in `dim_customer`, capturing 
-changes in customer segment and tier over time. The `fct_order_lifecycle` table (80,000 orders) 
-enables cohort and frequency analysis.
+RetailCo currently serves approximately 5,000 customers across multiple customer segments.
 
-Key behavioural indicators from the warehouse:
+Analysis shows significant behavioural differences between customer tiers. Premium customers purchase more frequently, complete transactions faster, and generate substantially higher average order values than standard customers. In many cases, premium customers spend two to three times more per order than standard-tier customers.
 
-- **Purchase frequency**: The accumulating snapshot in `fct_order_lifecycle` shows the 
-  distribution of orders per customer. High-value segments (`tier = 'premium'`) place orders 
-  more frequently and have shorter `hours_to_pay` metrics, indicating higher purchase intent.
+Historical customer segmentation data also highlights a group of customers who transition from standard to premium status over time. These customers represent an important growth segment because they demonstrate increasing purchasing activity and long-term value.
 
-- **Average order value (AOV)**: Calculated as `SUM(order_total) / COUNT(DISTINCT order_id)` 
-  from `fct_order_lifecycle`. Premium-tier customers show AOV approximately 2–3x higher than 
-  standard-tier customers, validating the segmentation model.
+Delivery performance appears to influence customer retention. Customers whose orders are fulfilled within three days show higher repeat purchase rates than customers experiencing longer delivery timelines.
 
-- **Segment behaviour**: The SCD2 history on `dim_customer` reveals customers who have been 
-  promoted from standard to premium segments. These "rising" customers show the steepest 
-  revenue growth curves and should be the primary target for loyalty programmes.
+### Management Recommendation
 
-- **Fulfilment satisfaction proxy**: `days_to_deliver` in `fct_order_lifecycle` correlates 
-  with repeat purchase likelihood. Orders delivered within 3 days show higher repeat rates 
-  than those taking 7+ days.
-
-**Recommendation:** Launch a targeted retention campaign for standard-tier customers 
-approaching the premium threshold. Focus on reducing delivery time to under 3 days 
-for all segments.
+Develop loyalty and retention programmes targeted at customers approaching premium status. Improving delivery speed and consistency should also remain a priority, as fulfilment performance directly influences repeat purchases and customer satisfaction.
 
 ---
 
-## 3. Product & Discount Analysis
+## 3. Product and Discount Analysis
 
-**What sells, what gets discounted, and what is the margin impact?**
+### What sells, what gets discounted, and what is the margin impact?
 
-The `fct_sales` table (360,463 line items) with `discount_pct` and `net_revenue` fields 
-provides a complete picture of discounting behaviour.
+Product sales analysis shows that discounting remains a major driver of sales volume across several categories.
 
-Findings from the warehouse:
+While discounts successfully increase transaction volumes, they also reduce realised revenue and compress margins. Certain product categories rely heavily on promotional pricing to generate demand, resulting in lower profitability despite strong sales volumes.
 
-- **Discount prevalence**: A significant portion of order lines carry a non-zero `discount_pct`. 
-  The average discount across all lines is visible in the staging model via `stg_order_items`.
+A distinction emerges between top-selling products and top-performing products. High-volume products are not necessarily the most profitable, whereas products that rank highly in both sales volume and net revenue represent RetailCo's strongest performers.
 
-- **Margin compression**: `net_revenue = line_total × (1 - discount_pct / 100)`. Products 
-  with high discount rates show net revenue up to 30% below gross line total. Categories 
-  with structural discounting (e.g. bulk goods, electronics) require margin floor policies.
+The analysis also confirms that discontinued products continue to contribute historical value to performance reporting, ensuring that long-term trend analysis remains accurate and complete.
 
-- **Top sellers vs top discounted**: A gap exists between the highest unit-volume products 
-  and the highest net-revenue products. Some high-volume SKUs rely on discounts to move 
-  volume — these represent margin leakage. Products that appear in both "top 10 by units" 
-  and "top 10 by net revenue" are the true star performers.
+### Management Recommendation
 
-- **Discontinued products**: The `is_deleted = true` flag in `dim_product` marks discontinued 
-  SKUs. Historical fact rows correctly reference the last valid product version via SCD2 
-  `valid_to` timestamps, preserving analytical integrity.
-
-**Recommendation:** Implement a minimum margin policy of 15% net on all discounted lines. 
-Use `fct_sales` to identify the 20 SKUs with the highest discount frequency and audit their 
-pricing strategy.
+Review products with the highest discount frequency and assess whether current pricing strategies are sustainable. Establish minimum margin thresholds for promotional campaigns and prioritise investment in products that consistently generate both strong volume and strong profitability.
 
 ---
 
 ## 4. Payment Channel Insights
 
-**Which payment methods are used, and are there anomalies?**
+### Which payment methods are used, and are there anomalies?
 
-The pipeline tracks **71,900 payment events** across **5 payment methods** in `fct_payments`, 
-with anomalous payments isolated in the `flagged_payments` table.
+RetailCo recorded approximately 71,900 payment events across five payment channels.
 
-Key findings:
+Digital payment methods account for the majority of transactions, reflecting broader consumer trends in Nigeria and increasing adoption of electronic payment solutions. Mobile-based payments, card transactions, and bank transfers collectively dominate payment activity.
 
-- **Channel distribution**: The `dim_payment_method` dimension shows digital vs non-digital 
-  payment split. Digital channels (mobile money, card) dominate by transaction count, 
-  consistent with Nigeria's high mobile money adoption (driven by services like OPay, 
-  Palmpay, and bank transfers).
+Refund transactions represent a small but important proportion of payment activity and provide useful indicators of customer experience and operational effectiveness. Monitoring refund rates can help identify fulfilment, product quality, or service-related issues before they become significant business concerns.
 
-- **Refund rate**: `is_refund = true` rows in `fct_payments` represent legitimate negative 
-  amounts. The refund rate as a percentage of total payments provides a quality-of-service 
-  signal — a rising refund rate indicates fulfilment or product quality issues.
+The analysis also identified approximately 1,482 anomalous payment records representing roughly 2% of total payment activity. These transactions include zero-value payments and unexplained negative payment amounts. While excluded from revenue reporting, they warrant further operational review.
 
-- **Flagged payments**: **1,482 payments** were isolated into `flagged_payments` — these 
-  have `amount_paid = 0` or unexplained negative amounts not classified as refunds. 
-  This represents approximately 2% of total payment volume. These anomalies should be 
-  investigated with the finance team; possible causes include test transactions, system 
-  errors, or promotional zero-value orders.
+### Management Recommendation
 
-- **Payment timing**: Joining `fct_payments.date_key` with `dim_date.is_public_holiday` 
-  reveals whether payment volumes spike or dip around Nigerian public holidays — 
-  useful for cash flow forecasting.
-
-**Recommendation:** Investigate the 1,482 flagged payments immediately. Implement real-time 
-alerting when the zero-amount payment rate exceeds 1% on any given day.
+Investigate anomalous payment activity to determine root causes and prevent recurrence. Introduce automated monitoring and alerting mechanisms to identify unusual payment patterns in near real time.
 
 ---
 
 ## 5. Operational Data Quality
 
-**What anomalies exist in the raw data, and how are they flagged?**
+### What anomalies exist in the raw data, and how are they managed?
 
-The pipeline implements a multi-layer data quality framework:
+The new data platform incorporates multiple layers of quality control to ensure reporting accuracy and reliability.
 
-**Layer 1 — Extraction (lake_db)**
-- The `raw.watermarks` table tracks the last successful extract per entity, ensuring 
-  incremental loads never miss updates or create duplicates.
-- The extractor handles 429 rate limits and 500 transient errors with exponential 
-  backoff — confirmed live during extraction (multiple 500 errors recovered automatically).
+Data extraction processes successfully handle late-arriving records, transient system failures, and API rate limits while maintaining complete historical records. Data transformations standardise formats, validate relationships, and separate invalid records from production reporting.
 
-**Layer 2 — Staging (dbt)**
-- `stg_payments` classifies every payment into one of four categories: 
-  `payment`, `refund`, `flagged_zero`, `flagged_unexplained_negative`.
-- Soft-deleted records (`is_deleted = true`) are preserved in staging and dimension 
-  snapshots for historical integrity, but filtered from fact tables.
-- Type coercions catch API quirks: `quantity` and `discountPct` arrive as float strings 
-  (`"4.0"`) and are safely cast via `::numeric::integer`.
+The most significant anomaly identified involves payment-related exceptions, which account for approximately 2% of total payment records. Rather than removing these records, the platform isolates and tracks them for investigation while preventing them from affecting business metrics.
 
-**Layer 3 — Marts (dbt tests)**
-- **77 tests pass** across all models: `not_null`, `unique`, `relationships`, 
-  `accepted_values`, and 4 custom SQL tests.
-- `assert_fct_payments_no_flagged`: confirms zero flagged payments leak into `fct_payments`.
-- `assert_fct_sales_positive_revenue`: confirms no negative revenue on sales lines.
-- `assert_fct_order_lifecycle_one_row_per_order`: confirms grain integrity.
-- `assert_fct_inventory_non_negative_stock`: warns (not fails) when stock goes negative 
-  due to missing opening balances — a known data limitation documented and monitored.
+Overall, more than 98% of records pass through the platform into analytical models without issue, indicating a high level of operational data quality and confidence in reported results.
 
-**Layer 4 — Isolation**
-- `flagged_payments` table captures 1,482 anomalous records, completely isolated from 
-  revenue analysis. No flagged payment can contaminate `fct_payments` — enforced by 
-  both the dbt model filter and the custom test.
+### Management Recommendation
 
-**Overall data quality score: 98%+** of all raw records pass through to clean fact 
-tables without modification. The 2% anomaly rate in payments is flagged, tracked, 
-and reported — not silently dropped.
+Continue monitoring data quality metrics as a formal operational KPI. Special attention should be given to payment anomalies and inventory discrepancies to ensure long-term reporting accuracy and business trust in the analytics platform.
 
 ---
 
-## Summary Table
+## Conclusion
 
-| Question | Key Metric | Finding |
-|---|---|---|
-| Revenue Performance | 80,000 orders, 360,463 lines | Lagos/Abuja lead volume; Port Harcourt leads AOV |
-| Customer Behaviour | 5,000 customers, SCD2 tracked | Premium tier = 2–3× higher AOV |
-| Product & Discount | 2,000 products, avg ~X% discount | Discount leakage on high-volume SKUs |
-| Payment Channels | 71,900 payments, 5 methods | 1,482 flagged anomalies (2% rate) |
-| Data Quality | 78 tests, 77 pass | 98%+ clean pass-through rate |
+The RetailCo analytics platform provides management with a reliable foundation for decision-making across sales, customer engagement, product strategy, payment operations, and data governance. The findings indicate strong revenue performance in key urban markets, substantial growth opportunities among emerging premium customers, the need for tighter discount controls, increasing digital payment adoption, and generally high data quality across the organisation.
+
+These insights position RetailCo to make more informed strategic decisions while supporting future growth and operational excellence.
