@@ -10,8 +10,9 @@ with order_items as (
 
 orders as (
     select * from {{ ref('stg_orders') }}
-    where is_deleted = false
+    where coalesce(is_deleted, false) = false
 ),
+
 
 dim_customer as (
     select customer_key, customer_id
