@@ -43,28 +43,47 @@ Python Extractor  ──►  Lake PostgreSQL (raw schema)
 - Docker Desktop 24+ with Docker Compose v2+
 - Git
 
+---
+
 ## Setup
 
-**1. Clone the repository**
+### Step 1 — Clone the repository
+
+**Windows (PowerShell) / Mac / Linux:**
 ```bash
-git clone https://github.com/PapyT/retailco-final.git
-cd retailco-final
+git clone https://github.com/PapyT/retailco-pipeline.git
+cd retailco-pipeline
 ```
 
-**2. Create your `.env` file**
+---
+
+### Step 2 — Create your `.env` file
+
+**Windows (PowerShell):**
+```powershell
+cp .env.example .env
+```
+
+**Mac / Linux:**
 ```bash
 cp .env.example .env
 ```
-Open `.env` and fill in your ERP API key:
+
+Then open `.env` in any text editor and replace `your_api_key_here` with your real ERP API key:
 ```
-ERP_API_KEY=your_api_key_here
+ERP_API_KEY=your_actual_key_here
 ```
 All other values are pre-configured for local development.
 
-**3. Start all services**
+---
+
+### Step 3 — Start all services
+
+**Windows / Mac / Linux (same command):**
 ```bash
 docker compose up -d
 ```
+
 This starts:
 - `lake_db` — PostgreSQL on port 5433 (raw ERP data)
 - `warehouse_db` — PostgreSQL on port 5434 (clean analytics data)
@@ -77,21 +96,28 @@ Wait ~2 minutes for all services to become healthy:
 docker compose ps
 ```
 
-**4. Access the Airflow UI**
+All services should show `(healthy)` in the STATUS column.
 
-Open http://localhost:8080 in your browser.
+---
+
+### Step 4 — Access the Airflow UI
+
+Open **http://localhost:8080** in your browser.
 - Username: `admin`
 - Password: `admin`
+
+---
 
 ## Running the Pipeline
 
 ### Option A — via Airflow UI (recommended)
 1. Go to http://localhost:8080
 2. Find `retailco_pipeline` in the DAG list
-3. Click the toggle to unpause it
-4. Click the ▶ Trigger DAG button
+3. Click the blue toggle to unpause it
+4. Click the **▶ Trigger DAG** button
+5. Click on the DAG run to watch tasks execute in order
 
-### Option B — via command line
+### Option B — via command line (Windows / Mac / Linux — same command)
 ```bash
 docker exec retailco_airflow_scheduler airflow dags trigger retailco_pipeline
 ```
@@ -101,60 +127,111 @@ docker exec retailco_airflow_scheduler airflow dags trigger retailco_pipeline
 docker exec retailco_airflow_scheduler airflow dags list-runs --dag-id retailco_pipeline
 ```
 
+---
+
 ## Pipeline Task Order
 
 ```
 extract → dlt_load → dbt_snapshot → dbt_staging → dbt_marts → dbt_test
 ```
 
-Each task only starts if the previous one succeeded. Failure stops all downstream tasks.
+Each task only starts if the previous one succeeded. Failure at any task stops all downstream tasks.
+
+---
 
 ## Running Components Individually
 
-**Extract only (ERP API → lake_db):**
+### Extractor (ERP API → lake_db)
+
+**Windows / Mac / Linux:**
 ```bash
 cd extractor
 python test_extract.py
 ```
 
-**dlt load only (lake_db → warehouse_db):**
+### dlt Pipeline (lake_db → warehouse_db)
+
 ```bash
 cd dlt_pipeline
 python test_pipeline.py
 ```
 
-**dbt commands:**
+### dbt commands
+
+> **Windows users:** All dbt commands must be on a **single line** in PowerShell.
+> Use the Windows tab below for copy-paste-ready single-line commands.
+
+#### Install dbt packages
+
+**Windows (PowerShell) — single line:**
+```powershell
+docker run --rm --network retailco-pipeline_retailco_net -v "C:\path\to\retailco-pipeline\dbt_retailco:/dbt" ghcr.io/dbt-labs/dbt-postgres:1.7.17 deps --profiles-dir /dbt --project-dir /dbt
+```
+
+**Mac / Linux:**
 ```bash
-# Install packages
 docker run --rm --network retailco-pipeline_retailco_net \
   -v "$(pwd)/dbt_retailco:/dbt" \
   ghcr.io/dbt-labs/dbt-postgres:1.7.17 \
   deps --profiles-dir /dbt --project-dir /dbt
+```
 
-# Run snapshots (SCD2)
+#### Run snapshots (SCD2)
+
+**Windows (PowerShell) — single line:**
+```powershell
+docker run --rm --network retailco-pipeline_retailco_net -v "C:\path\to\retailco-pipeline\dbt_retailco:/dbt" ghcr.io/dbt-labs/dbt-postgres:1.7.17 snapshot --profiles-dir /dbt --project-dir /dbt
+```
+
+**Mac / Linux:**
+```bash
 docker run --rm --network retailco-pipeline_retailco_net \
   -v "$(pwd)/dbt_retailco:/dbt" \
   ghcr.io/dbt-labs/dbt-postgres:1.7.17 \
   snapshot --profiles-dir /dbt --project-dir /dbt
+```
 
-# Run all models
+#### Run all models
+
+**Windows (PowerShell) — single line:**
+```powershell
+docker run --rm --network retailco-pipeline_retailco_net -v "C:\path\to\retailco-pipeline\dbt_retailco:/dbt" ghcr.io/dbt-labs/dbt-postgres:1.7.17 run --profiles-dir /dbt --project-dir /dbt
+```
+
+**Mac / Linux:**
+```bash
 docker run --rm --network retailco-pipeline_retailco_net \
   -v "$(pwd)/dbt_retailco:/dbt" \
   ghcr.io/dbt-labs/dbt-postgres:1.7.17 \
   run --profiles-dir /dbt --project-dir /dbt
+```
 
-# Run tests
+#### Run tests
+
+**Windows (PowerShell) — single line:**
+```powershell
+docker run --rm --network retailco-pipeline_retailco_net -v "C:\path\to\retailco-pipeline\dbt_retailco:/dbt" ghcr.io/dbt-labs/dbt-postgres:1.7.17 test --profiles-dir /dbt --project-dir /dbt
+```
+
+**Mac / Linux:**
+```bash
 docker run --rm --network retailco-pipeline_retailco_net \
   -v "$(pwd)/dbt_retailco:/dbt" \
   ghcr.io/dbt-labs/dbt-postgres:1.7.17 \
   test --profiles-dir /dbt --project-dir /dbt
 ```
 
+> **Tip for Windows users:** Replace `C:\path\to\retailco-pipeline` with your actual path, e.g. `C:\Users\Papy T\Downloads\retailco-pipeline`
+
+---
+
 ## Querying the Warehouse
 
 Connect to the warehouse database:
+
+**Windows / Mac / Linux:**
 ```bash
-docker exec retailco_warehouse_db psql -U warehouse_user -d warehouse_db
+docker exec -it retailco_warehouse_db psql -U warehouse_user -d warehouse_db
 ```
 
 **Revenue by store:**
@@ -216,45 +293,52 @@ GROUP BY current_status
 ORDER BY order_count DESC;
 ```
 
+---
+
 ## Project Structure
 
 ```
 retailco-pipeline/
 ├── .env                        # secrets (never committed)
+├── .env.example                # template — copy to .env and fill in your key
 ├── .gitignore
 ├── docker-compose.yml          # all services
 ├── Dockerfile.dbt
+├── README.md
+├── insights.md                 # business insights write-up
 ├── sql/
 │   ├── lake_init.sql           # creates raw schema in lake
 │   └── warehouse_init.sql      # creates raw/staging/marts schemas
 ├── extractor/
 │   ├── extract.py              # ERP API extractor
-│   ├── test_extract.py
+│   ├── test_extract.py         # local test runner
 │   └── requirements.txt
 ├── dlt_pipeline/
 │   ├── pipeline.py             # lake → warehouse loader
-│   ├── test_pipeline.py
+│   ├── test_pipeline.py        # local test runner
 │   └── requirements.txt
 ├── dbt_retailco/
 │   ├── dbt_project.yml
 │   ├── profiles.yml
 │   ├── packages.yml
-│   ├── snapshots/              # SCD2 snapshots
+│   ├── snapshots/              # SCD2 snapshots (customers, products)
 │   ├── models/
 │   │   ├── staging/            # 9 staging views
 │   │   └── marts/
 │   │       ├── dimensions/     # 6 dimension tables
 │   │       └── facts/          # 4 fact tables + flagged_payments
-│   └── tests/                  # 4 custom data tests
+│   └── tests/                  # 4 custom data quality tests
 ├── airflow/
 │   ├── dags/
 │   │   └── retailco_dag.py     # main pipeline DAG
 │   └── requirements.txt
-└── design artifacts/
+└── design_artifacts/
     ├── bus_matrix.png
     ├── erd.png
     └── architecture.png
 ```
+
+---
 
 ## Data Volume
 
@@ -271,10 +355,14 @@ retailco-pipeline/
 | inventory_movements | 355,102 |
 | **Total** | **873,524** |
 
+---
+
 ## dbt Test Results
 
 - **77 PASS** / 1 WARN / 0 ERROR out of 78 tests
 - Warning: `assert_fct_inventory_non_negative_stock` — expected behaviour when movements start mid-history without opening balances
+
+---
 
 ## Stopping the Pipeline
 
